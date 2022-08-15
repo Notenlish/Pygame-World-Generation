@@ -7,18 +7,21 @@ RES = WIDTH,HEIGHT = 700,500
 
 class Game:
     def __init__(self) -> None:
-        self.tilesize = 2
+        self.tilesize = 1
         self.screen = pg.display.set_mode(RES)
         self.calcbut = pg.rect.Rect(350,210,200,80)
         self.slider = pg.rect.Rect(350,100,200,25)
         self.generator = Generator(self)
         self.gamemapsurf = pg.surface.Surface((10,10))
+        self.clock = pg.time.Clock()
 
 
     def run(self):
         self.generator.generate_map()
         
         while True:
+            self.clock.tick(60)
+            pg.display.set_caption(str(self.clock.get_fps()))
             self.screen.fill('black')
             for event in pg.event.get():
                 if event.type == pg.QUIT:
