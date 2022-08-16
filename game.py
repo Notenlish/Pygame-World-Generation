@@ -17,7 +17,7 @@ class Game:
 
 
     def run(self):
-        self.generator.generate_map()
+        self.generator.generate_map(False)
         
         while True:
             self.clock.tick(60)
@@ -32,7 +32,7 @@ class Game:
                 if event.type == pg.MOUSEBUTTONDOWN:
                     mp = pg.mouse.get_pos() #mouse pos
                     if pg.mouse.get_pressed()[0] and self.calcbut.collidepoint(mp):
-                        self.generator.generate_map()
+                        self.generator.generate_map(True)
                     if pg.mouse.get_pressed()[0] and self.slider.collidepoint(mp):
                         self.generator.new_seed(mp)
                         print(self.generator.seed)

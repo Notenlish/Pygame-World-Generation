@@ -3,6 +3,7 @@ from noise import snoise2
 from PIL import Image
 from sys import exit
 import random
+import math
 
 class Generator:
     def __init__(self,game) -> None:
@@ -31,7 +32,7 @@ class Generator:
             print("length is bigger than 8")
             self.seed = random.randint(11111111,99999999)
 
-    def generate_map(self):
+    def generate_map(self,island=False):
         # ilk 4 sayı x, son 4 sayı y
         tt = str(self.seed)
         xseed = int(tt[:4])
@@ -53,10 +54,11 @@ class Generator:
         self.mapsurf = pg.image.load(newstring).convert()
         self.maparray = pg.surfarray.array2d(self.mapsurf)
         print("generated new map")
-        self.convert_map()
-        
+        self.convert_map(island)
+    
 
-    def convert_map(self):
+
+    def convert_map(self,island):
         # NOTE: since its a greyscale image i will only look at the r value since there isnt a need to look at other values
         # 0 - 255
         # 0 75 water
@@ -64,29 +66,64 @@ class Generator:
         # 86 155 land
         # 156 255 mountain
 
-        water = 105
-        sand = 160
-        land = 240
+        water = 70
+        sand = 136
+        land = 210
+
+        center = (self.size[0]/2,self.size[1]/2 )
 
         self.map = [ ]
+        testmap = [ ]
         y = 0
         for line in self.maparray:
             self.map.append([])
+            testmap.append([])
+            x = 0
             for px in line:
                 color = self.mapsurf.unmap_rgb(px)
+                color = [color[0]/255,color[1]/255,color[2]/255]
+                checked_channel = color[0]
+                if island:
+                    #complicated thing lol
+
+                    linear_shaping = 6
+                    
+                    nx = 2*x/self.size[0] - 1 #range from -1 to 1
+                    ny = 2*y/self.size[1] - 1 #range from -1 to 1
+
+                    #d = 1 - math.pow(nx,2) * math.pow(ny,2) # square bump function
+                    d = min(1, (math.pow(nx,2) + math.pow(ny,2)) / math.sqrt(2))
+                    
+                    #checked_channel = (checked_channel + (1-d)) / 2  #calculate new elevation
+                    checked_channel = (checked_channel + (1-d)) / linear_shaping
+
+                else:
+                    d = 0
+
+                checked_channel *= 255
+                #testmap[y].append((1-d)*255)
+                
+                if island:
+                    checked_channel /= (linear_shaping*0.150+0.01)
                 smt = 0
-                if color[0] <= water:
+                if checked_channel <= water:
                     smt = 0 #water
-                if color[1] > water and color[1] <= sand:
+                if checked_channel > water and color[1] <= sand:
                     smt = 1 #sand
-                if color[1] > sand and color[1] <= land:
+                if checked_channel > sand and color[1] <= land:
                     smt = 2 #land
-                if color[1] > land :
+                if checked_channel > land :
                     smt = 3 #mountain
                 self.map[y].append(smt)
+                testmap[y].append(checked_channel)
+                x += 1
             y += 1
         print("converted map")
+        
         self.render_map()
+        with open('log.txt','w') as file:
+            file.write(str(testmap))
+            print("wrote the file")
 
     def render_map(self):
         self.game.gamemapsurf = pg.surface.Surface((self.size[0]*self.game.tilesize,self.size[1]*self.game.tilesize))
