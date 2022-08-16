@@ -33,7 +33,6 @@ class Generator:
             self.seed = random.randint(11111111,99999999)
 
     def generate_map(self,island=False):
-        # ilk 4 sayı x, son 4 sayı y
         tt = str(self.seed)
         xseed = int(tt[:4])
         yseed = int(tt[4:])
@@ -44,7 +43,20 @@ class Generator:
         self.file.write('255\n')
         for y in range(self.size[1]):
             for x in range(self.size[0]): 
-                self.file.write("%s\n" % int(snoise2(x / self.freq +xseed, y / self.freq +yseed, self.octaves) * 127.0 + 128.0))
+                var1 = x / self.freq +xseed
+                var1 += (x / self.freq*0.25 +xseed)*0.5
+                var2 = y / self.freq +yseed
+                var2 += (y / self.freq*0.25 +yseed)*0.5
+                var3 = self.octaves
+
+                tt = snoise2(var1, var2,var3)
+                tt += 1
+                tt = math.pow(tt,1.2)
+                if tt > 2:
+                    tt = 2
+
+                self.file.write("%s\n" % 
+                 int((tt-1) * 127.0 + 128.0))
         self.file.close() #write and save the file in the pgm format
 
         im1 = Image.open(self.path)
@@ -84,27 +96,28 @@ class Generator:
                 color = [color[0]/255,color[1]/255,color[2]/255]
                 checked_channel = color[0]
                 if island:
-                    #complicated thing lol
-
-                    linear_shaping = 6
-                    
+                    linear_shaping = 6.2  +  0.00001
                     nx = 2*x/self.size[0] - 1 #range from -1 to 1
                     ny = 2*y/self.size[1] - 1 #range from -1 to 1
 
-                    #d = 1 - math.pow(nx,2) * math.pow(ny,2) # square bump function
-                    d = min(1, (math.pow(nx,2) + math.pow(ny,2)) / math.sqrt(2))
-                    
-                    #checked_channel = (checked_channel + (1-d)) / 2  #calculate new elevation
+                    d = min(1, (math.pow(nx,2) + math.pow(ny,2)) / math.sqrt(2)) #distance
+
                     checked_channel = (checked_channel + (1-d)) / linear_shaping
-
-                else:
-                    d = 0
-
-                checked_channel *= 255
-                #testmap[y].append((1-d)*255)
+                    checked_channel *= 255*1.1
+                    if checked_channel <= water: 
+                        checked_channel = math.pow(checked_channel,1.01)
+                    elif checked_channel > water:
+                        checked_channel = math.pow(checked_channel,1.15)
+                    if checked_channel > sand:
+                        checked_channel = math.pow(checked_channel,1.055)
+                    
+                    
                 
-                if island:
-                    checked_channel /= (linear_shaping*0.150+0.01)
+                else:
+                    checked_channel *= 255
+                
+                    
+
                 smt = 0
                 if checked_channel <= water:
                     smt = 0 #water
