@@ -15,6 +15,6 @@ the game then renders the map using both the tilesize and colors for each tile t
 
 ![alt_text](https://github.com/N0t3nl1sh/Pygame-World-Generation/blob/main/img.png)
 
-there is also a island option but it generates islands without biomes.
+there is also a island option that generates island maps.
 
 you can also use the white box to generate new maps with different seeds.
