@@ -2,6 +2,7 @@
 import random
 from generation import Generator
 import pygame as pg
+#import opensimplex 
 
 RES = WIDTH,HEIGHT = 700,500
 
@@ -39,7 +40,6 @@ class Game:
                         self.generator.generate_map()
             
 
-            self.screen.blit(self.generator.mapsurf,(0,0))
             self.screen.blit(self.gamemapsurf,(10,10))
             
             pg.draw.rect(self.screen,'green',self.calcbut)
